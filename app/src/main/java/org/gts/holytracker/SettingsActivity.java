@@ -18,8 +18,8 @@ public class SettingsActivity extends PreferenceActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addPreferencesFromResource(R.layout.activity_settings);
-        PreferenceManager.setDefaultValues(SettingsActivity.this, R.layout.activity_settings, false);
+        addPreferencesFromResource(R.xml.activity_settings);
+        PreferenceManager.setDefaultValues(SettingsActivity.this, R.xml.activity_settings, false);
         initSummary(getPreferenceScreen());
     }
 
