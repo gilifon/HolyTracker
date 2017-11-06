@@ -84,9 +84,10 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationRequest mLocationRequest;
     private LocationCallback mLocationCallback;
-    private double mLatitude;
-    private double mLongitude;
+    private double mLatitude = 0;
+    private double mLongitude = 0;
     int mUpdateTimerInterval = 30; //in seconds
+    boolean isUpdateServerWithNewLocation = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,9 +113,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 for (Location location : locationResult.getLocations()) {
-                    mLatitude = location.getLatitude();
-                    mLongitude = location.getLongitude();
-                    //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + mLatitude + "\nLong: " + mLongitude, Toast.LENGTH_LONG).show();
+                    if (mLatitude == 0 || mLongitude == 0) {
+                        mLatitude = location.getLatitude();
+                        mLongitude = location.getLongitude();
+                        isUpdateServerWithNewLocation = true;
+                        //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + mLatitude + "\nLong: " + mLongitude, Toast.LENGTH_LONG).show();
+                    }
+                    else
+                    {
+                        float[] d = new float[3];
+                        Location.distanceBetween(mLatitude,mLongitude,location.getLatitude(), location.getLongitude(), d);
+                        if (d[0] >= 100)
+                        {
+                            mLatitude = location.getLatitude();
+                            mLongitude = location.getLongitude();
+                            isUpdateServerWithNewLocation = true;
+                        }
+                        else
+                        {
+                            isUpdateServerWithNewLocation = false;
+                        }
+                    }
                 }
             };
         };
@@ -138,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     String callsign = sharedPrefs.getString("callsign", "");
                     String frequency = sharedPrefs.getString("frequency", "00.000");
 
-                    if (!callsign.equals("") && !frequency.equals("00.000") && mRequestingLocationUpdates) {
+                    if (!callsign.equals("") && !frequency.equals("00.000") && mRequestingLocationUpdates && isUpdateServerWithNewLocation) {
                         doInBackground("https://www.iarc.org/squarereg/Server/save.php?call=" + callsign + "&lat=" + mLatitude + "&lng=" + mLongitude + "&freq=" + frequency);
                     }
                 }
