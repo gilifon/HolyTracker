@@ -13,6 +13,7 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private double mLongitude = 0;
     int mUpdateTimerInterval = 30; //in seconds
     boolean isUpdateServerWithNewLocation = false;
+    long lastUpdateTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,8 +158,11 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     String callsign = sharedPrefs.getString("callsign", "");
                     String frequency = sharedPrefs.getString("frequency", "00.000");
+                    long currentTime = SystemClock.elapsedRealtime();
+                    boolean isUpdateIntervalExceeded = (currentTime-lastUpdateTime)/1000 > 60*10;
 
-                    if (!callsign.equals("") && !frequency.equals("00.000") && mRequestingLocationUpdates && isUpdateServerWithNewLocation) {
+                    if (!callsign.equals("") && !frequency.equals("00.000") && mRequestingLocationUpdates && (isUpdateServerWithNewLocation || isUpdateIntervalExceeded)) {
+                        lastUpdateTime = currentTime;
                         doInBackground("https://www.iarc.org/squarereg/Server/save.php?call=" + callsign + "&lat=" + mLatitude + "&lng=" + mLongitude + "&freq=" + frequency);
                     }
                 }
